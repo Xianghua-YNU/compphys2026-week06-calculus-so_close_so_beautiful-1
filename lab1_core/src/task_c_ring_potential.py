@@ -1,23 +1,22 @@
 import numpy as np
 
 def ring_potential(x, y, z, lambda_, a, eps0=8.854e-12):
-    k = 1 / (4 * np.pi * eps0)
+    k = 1.0 / (4 * np.pi * eps0)
     r = np.sqrt(x**2 + y**2 + z**2)
     
-    # 奇点处理（核心！）
+    # 奇点安全处理（必须加！）
     if r < 1e-10:
         return k * lambda_ * 2 * np.pi * a / a
     
-    V = k * lambda_ * 2 * np.pi * a / r
-    return V
+    return k * lambda_ * 2 * np.pi * a / r
 
-# 关键修复：返回形状 (len(zs), len(ys)) 而不是 (len(ys), len(zs))
+# ✅ 关键修复：形状顺序 (len(zs), len(ys))
 def potential_grid(xs, ys, zs, lambda_, a, eps0=8.854e-12):
-    # 形状顺序：Z 在前，Y 在后！！！
-    V = np.zeros((len(zs), len(ys)))
+    # 固定 x=0
+    V = np.zeros((len(zs), len(ys)))  # 👈 这行是关键！
     
     for i, z in enumerate(zs):
         for j, y in enumerate(ys):
-            x = 0.0  # 固定x=0平面
-            V[i, j] = ring_potential(x, y, z, lambda_, a, eps0)
+            V[i, j] = ring_potential(0.0, y, z, lambda_, a, eps0)
+    
     return V
